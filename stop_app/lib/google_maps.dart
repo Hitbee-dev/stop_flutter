@@ -13,21 +13,21 @@ class GoogleMapsState extends State<GoogleMaps> {
   Completer<GoogleMapController> _controller = Completer();
 
   static final CameraPosition _kGooglePlex = CameraPosition(
-    target: LatLng(37.42796133580664, -122.085749655962),
+    target: LatLng(36.3544591, 127.4189559),
     zoom: 14.4746,
   );
 
   static final CameraPosition _kLake = CameraPosition(
-      bearing: 192.8334901395799,
-      target: LatLng(37.43296265331129, -122.08832357078792),
-      tilt: 59.440717697143555,
+      // bearing: 192.8334901395799,
+      // tilt: 59.440717697143555,
+      target: LatLng(36.3544591, 127.4189559),
       zoom: 19.151926040649414);
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
+    return Scaffold(
       body: GoogleMap(
-        mapType: MapType.hybrid,
+        mapType: MapType.normal,
         initialCameraPosition: _kGooglePlex,
         onMapCreated: (GoogleMapController controller) {
           _controller.complete(controller);
@@ -35,9 +35,11 @@ class GoogleMapsState extends State<GoogleMaps> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _goToTheLake,
-        label: Text('To the lake!'),
-        icon: Icon(Icons.directions_boat),
+        backgroundColor: Colors.black,
+        label: Text('QR SCAN'),
+        icon: Icon(Icons.qr_code_scanner),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
