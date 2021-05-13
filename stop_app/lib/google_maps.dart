@@ -2,14 +2,22 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
+import 'package:stop_app/informations.dart';
 
 class GoogleMaps extends StatefulWidget {
   @override
   State<GoogleMaps> createState() => GoogleMapsState();
+
 }
 
 class GoogleMapsState extends State<GoogleMaps> {
+
+  @override
+  initState(){
+    super.initState();
+
+  }
+
   Completer<GoogleMapController> _controller = Completer();
 
   static final CameraPosition _kGooglePlex = CameraPosition(
@@ -23,6 +31,12 @@ class GoogleMapsState extends State<GoogleMaps> {
       target: LatLng(36.3544591, 127.4189559),
       zoom: 19.151926040649414);
 
+  String qrcode_name = "QR SCAN";
+  String qrcode_name1 = "운행 종료";
+  String qrcode_name2 = "QR SCAN";
+  int qrIndex = 0;
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,17 +48,24 @@ class GoogleMapsState extends State<GoogleMaps> {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _goToTheLake,
+        onPressed: _qrChange,
         backgroundColor: Colors.black,
-        label: Text('QR SCAN'),
+        label: Text(qrcode_name),
         icon: Icon(Icons.qr_code_scanner),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
-  Future<void> _goToTheLake() async {
-    final GoogleMapController controller = await _controller.future;
-    controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
+  Widget _qrChange() {
+    setState(() {
+      if(qrIndex == 0) {
+        qrcode_name = qrcode_name1;
+        qrIndex++;
+      } else {
+        qrcode_name = qrcode_name2;
+        qrIndex--;
+      }
+    });
   }
 }

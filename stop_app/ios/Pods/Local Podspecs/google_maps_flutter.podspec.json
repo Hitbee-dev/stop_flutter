@@ -22,7 +22,7 @@
 
     ],
     "GoogleMaps": [
-      "< 3.10"
+
     ]
   },
   "static_framework": true,
