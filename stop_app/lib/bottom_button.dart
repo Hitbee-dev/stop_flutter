@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:stop_app/google_maps.dart';
+import 'package:stop_app/informations.dart';
 
-class HomePage extends StatefulWidget {
-  HomePage({
+class BottomButton extends StatefulWidget {
+  BottomButton({
     Key key,
   }) : super(key: key);
 
   @override
-  _HomePageState createState() => _HomePageState();
+  _BottomButtonState createState() => _BottomButtonState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _BottomButtonState extends State<BottomButton> {
   List<BottomNavigationBarItem> btmNavItems = [
     BottomNavigationBarItem(icon: Icon(Icons.map), label: "지도"),
     BottomNavigationBarItem(icon: Icon(Icons.info_outline), label: "주차 안내"),
@@ -21,7 +22,7 @@ class _HomePageState extends State<HomePage> {
 
   static List<Widget> _screens = <Widget> [
     GoogleMaps(),
-    Container(color: Colors.green),
+    Informations(),
     Container(color: Colors.blue),
   ];
 

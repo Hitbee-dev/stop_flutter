@@ -1,9 +1,11 @@
+ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES
 CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO
-FRAMEWORK_SEARCH_PATHS = $(inherited) "${PODS_CONFIGURATION_BUILD_DIR}/geolocator" "${PODS_CONFIGURATION_BUILD_DIR}/google_maps_flutter" "${PODS_ROOT}/GoogleMaps/Base/Frameworks" "${PODS_ROOT}/GoogleMaps/Maps/Frameworks"
+FRAMEWORK_SEARCH_PATHS = $(inherited) "${PODS_CONFIGURATION_BUILD_DIR}/geolocator" "${PODS_CONFIGURATION_BUILD_DIR}/google_maps_flutter" "${PODS_CONFIGURATION_BUILD_DIR}/image_gallery_saver" "${PODS_CONFIGURATION_BUILD_DIR}/image_picker" "${PODS_CONFIGURATION_BUILD_DIR}/permission_handler" "${PODS_ROOT}/GoogleMaps/Base/Frameworks" "${PODS_ROOT}/GoogleMaps/Maps/Frameworks"
 GCC_PREPROCESSOR_DEFINITIONS = $(inherited) COCOAPODS=1
-HEADER_SEARCH_PATHS = $(inherited) "${PODS_CONFIGURATION_BUILD_DIR}/geolocator/geolocator.framework/Headers" "${PODS_CONFIGURATION_BUILD_DIR}/google_maps_flutter/google_maps_flutter.framework/Headers"
+HEADER_SEARCH_PATHS = $(inherited) "${PODS_CONFIGURATION_BUILD_DIR}/geolocator/geolocator.framework/Headers" "${PODS_CONFIGURATION_BUILD_DIR}/google_maps_flutter/google_maps_flutter.framework/Headers" "${PODS_CONFIGURATION_BUILD_DIR}/image_gallery_saver/image_gallery_saver.framework/Headers" "${PODS_CONFIGURATION_BUILD_DIR}/image_picker/image_picker.framework/Headers" "${PODS_CONFIGURATION_BUILD_DIR}/permission_handler/permission_handler.framework/Headers"
 LD_RUNPATH_SEARCH_PATHS = $(inherited) '@executable_path/Frameworks' '@loader_path/Frameworks'
-OTHER_LDFLAGS = $(inherited) -ObjC -l"c++" -l"z" -framework "Accelerate" -framework "CoreData" -framework "CoreGraphics" -framework "CoreImage" -framework "CoreLocation" -framework "CoreTelephony" -framework "CoreText" -framework "GLKit" -framework "GoogleMaps" -framework "GoogleMapsBase" -framework "GoogleMapsCore" -framework "ImageIO" -framework "Metal" -framework "OpenGLES" -framework "QuartzCore" -framework "SystemConfiguration" -framework "UIKit" -framework "geolocator" -framework "google_maps_flutter"
+OTHER_LDFLAGS = $(inherited) -ObjC -l"c++" -l"z" -framework "Accelerate" -framework "CoreData" -framework "CoreGraphics" -framework "CoreImage" -framework "CoreLocation" -framework "CoreTelephony" -framework "CoreText" -framework "GLKit" -framework "GoogleMaps" -framework "GoogleMapsBase" -framework "GoogleMapsCore" -framework "ImageIO" -framework "Metal" -framework "OpenGLES" -framework "QuartzCore" -framework "SystemConfiguration" -framework "UIKit" -framework "geolocator" -framework "google_maps_flutter" -framework "image_gallery_saver" -framework "image_picker" -framework "permission_handler"
+OTHER_SWIFT_FLAGS = $(inherited) -D COCOAPODS
 PODS_BUILD_DIR = ${BUILD_DIR}
 PODS_CONFIGURATION_BUILD_DIR = ${PODS_BUILD_DIR}/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)
 PODS_PODFILE_DIR_PATH = ${SRCROOT}/.
