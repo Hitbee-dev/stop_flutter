@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:stop_app/informations.dart';
+import 'package:stop_app/qr_scaning.dart';
 
 Future<Uint8List> getBytesFromAsset(String path, int width) async {
   ByteData data = await rootBundle.load(path);
@@ -68,8 +69,6 @@ class GoogleMapsState extends State<GoogleMaps> {
   String qrcode_name2 = "QR SCAN";
   int qrIndex = 0;
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -92,6 +91,12 @@ class GoogleMapsState extends State<GoogleMaps> {
   Widget _qrChange() {
     setState(() {
       if(qrIndex == 0) {
+        setState(() {
+          Navigator.push(context,
+              MaterialPageRoute<void>(builder: (BuildContext context) {
+                return QrScaning();
+              }));
+        });
         qrcode_name = qrcode_name1;
         qrIndex++;
       } else {
