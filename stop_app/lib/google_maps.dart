@@ -70,16 +70,19 @@ class GoogleMapsState extends State<GoogleMaps> {
   );
 
   String qrcode_name = "QR SCAN";
-  String qrcode_name1 = "운행 종료";
-  String qrcode_name2 = "QR SCAN";
   int qrIndex = 0;
+  int qrFlag = 1;
 
   @override
   Widget build(BuildContext context) {
     final scanResult = this.scanResult;
     if(scanResult != null) {
       qrcode_name = scanResult.rawContent;
-      qrIndex++;
+    }
+    if(qrFlag == 0){
+      qrcode_name = "QR SCAN";
+      qrFlag++;
+      qrIndex--;
     }
     return Scaffold(
       body: GoogleMap(
@@ -103,9 +106,9 @@ class GoogleMapsState extends State<GoogleMaps> {
     setState(() {
       if(qrIndex == 0) {
         _scan();
+        qrIndex++;
       } else {
-        qrcode_name = qrcode_name2;
-        qrIndex--;
+        qrFlag--;
       }
     });
   }
