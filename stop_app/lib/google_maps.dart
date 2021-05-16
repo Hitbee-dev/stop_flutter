@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -6,18 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:stop_app/informations.dart';
 import 'package:stop_app/qr_scaning.dart';
-
-Future<Uint8List> getBytesFromAsset(String path, int width) async {
-  ByteData data = await rootBundle.load(path);
-  ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(), targetWidth: width);
-  ui.FrameInfo fi = await codec.getNextFrame();
-  return (await fi.image.toByteData(format: ui.ImageByteFormat.png)).buffer.asUint8List();
-}
-
-Future<BitmapDescriptor> getBitmapDescriptorFromAssetBytes(String path, int width) async {
-  final Uint8List imageData = await getBytesFromAsset(path, width);
-  return BitmapDescriptor.fromBytes(imageData);
-}
+import 'package:barcode_scan2/barcode_scan2.dart';
 
 class GoogleMaps extends StatefulWidget {
   @override
@@ -28,7 +18,21 @@ class GoogleMaps extends StatefulWidget {
 class GoogleMapsState extends State<GoogleMaps> {
   Set<Marker> _markers = {};
   BitmapDescriptor mapMarker;
+  ScanResult scanResult;
 
+  final _flashOnController = TextEditingController(text: 'Flash on');
+  final _flashOffController = TextEditingController(text: 'Flash off');
+  final _cancelController = TextEditingController(text: 'Cancel');
+
+  var _aspectTolerance = 0.00;
+  var _selectedCamera = -1;
+  var _useAutoFocus = true;
+  var _autoEnableFlash = false;
+
+  static final _possibleFormats = BarcodeFormat.values.toList()
+    ..removeWhere((e) => e == BarcodeFormat.unknown);
+
+  List<BarcodeFormat> selectedFormats = [..._possibleFormats];
   @override
   void initState(){
     super.initState();
@@ -43,14 +47,15 @@ class GoogleMapsState extends State<GoogleMaps> {
 
   void _onMapCreated(GoogleMapController controller) {
     setState(() {
+      //공대 36.3562174,127.4173272
       _markers.add(
         Marker(
             markerId: MarkerId('1'),
             position: LatLng(36.3544591, 127.4189559),
             icon: mapMarker,
             infoWindow: InfoWindow(
-              title: "한남대학교 공과대학",
-              snippet: "CU"
+              title: "한남대학교",
+              snippet: "학생회관"
           )
         )
       );
@@ -71,6 +76,11 @@ class GoogleMapsState extends State<GoogleMaps> {
 
   @override
   Widget build(BuildContext context) {
+    final scanResult = this.scanResult;
+    if(scanResult != null) {
+      qrcode_name = scanResult.rawContent;
+      qrIndex++;
+    }
     return Scaffold(
       body: GoogleMap(
         mapType: MapType.normal,
@@ -86,23 +96,57 @@ class GoogleMapsState extends State<GoogleMaps> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
+
   }
 
   Widget _qrChange() {
     setState(() {
       if(qrIndex == 0) {
-        setState(() {
-          Navigator.push(context,
-              MaterialPageRoute<void>(builder: (BuildContext context) {
-                return QrScaning();
-              }));
-        });
-        qrcode_name = qrcode_name1;
-        qrIndex++;
+        _scan();
       } else {
         qrcode_name = qrcode_name2;
         qrIndex--;
       }
     });
   }
+
+  Future<void> _scan() async {
+    try {
+      final result = await BarcodeScanner.scan(
+        options: ScanOptions(
+          strings: {
+            'cancel': _cancelController.text,
+            'flash_on': _flashOnController.text,
+            'flash_off': _flashOffController.text,
+          },
+          restrictFormat: selectedFormats,
+          useCamera: _selectedCamera,
+          autoEnableFlash: _autoEnableFlash,
+          android: AndroidOptions(
+            aspectTolerance: _aspectTolerance,
+            useAutoFocus: _useAutoFocus,
+          ),
+        ),
+      );
+      setState(() => scanResult = result);
+    } on PlatformException catch (e) {
+      setState(() {
+        scanResult = ScanResult(
+          type: ResultType.Error,
+          format: BarcodeFormat.unknown,
+          rawContent: e.code == BarcodeScanner.cameraAccessDenied
+              ? 'The user did not grant the camera permission!'
+              : 'Unknown error: $e',
+        );
+
+      });
+    }
+  }
 }
+
+// setState(() {
+//   Navigator.push(context,
+//       MaterialPageRoute<void>(builder: (BuildContext context) {
+//         return QrScaning();
+//       }));
+// });
