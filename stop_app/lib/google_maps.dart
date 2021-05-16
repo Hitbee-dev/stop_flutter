@@ -148,26 +148,31 @@ class GoogleMapsState extends State<GoogleMaps> {
     MarkerId("1"),
     MarkerId("2"),
     MarkerId("3"),
+    MarkerId("4"),
   ];
   final lats = [
     36.354582,
     36.356289,
     36.351929,
+    36.352579,
   ];
   final lngs = [
     127.419063,
     127.419470,
     127.422202,
+    127.424284,
   ];
   final titles = [
     "한남대학교",
     "한남대학교",
     "한남대학교",
+    "카",
   ];
   final snippets = [
     "학생회관",
     "공과대학",
-    "56기념관"
+    "56기념관",
+    "Sweet Buns",
   ];
 }
 
