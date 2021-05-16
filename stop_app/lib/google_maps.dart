@@ -43,7 +43,7 @@ class GoogleMapsState extends State<GoogleMaps> {
   static final CameraPosition initialLocation = CameraPosition(
       // bearing: 192.8334901395799,
       // tilt: 59.440717697143555,
-      target: LatLng(36.3544591, 127.4189559),//현재위치 받아오기
+      target: LatLng(36.3544591, 127.4189559),//현재위치 받아오
       zoom: 16,
   );
 
@@ -147,22 +147,27 @@ class GoogleMapsState extends State<GoogleMaps> {
   final markerIds = [
     MarkerId("1"),
     MarkerId("2"),
+    MarkerId("3"),
   ];
   final lats = [
     36.354582,
     36.356289,
+    36.351929,
   ];
   final lngs = [
     127.419063,
     127.419470,
+    127.422202,
   ];
   final titles = [
+    "한남대학교",
     "한남대학교",
     "한남대학교",
   ];
   final snippets = [
     "학생회관",
     "공과대학",
+    "56기념관"
   ];
 }
 
