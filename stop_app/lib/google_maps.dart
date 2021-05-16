@@ -16,6 +16,12 @@ class GoogleMaps extends StatefulWidget {
 }
 
 class GoogleMapsState extends State<GoogleMaps> {
+  @override
+  void initState(){
+    super.initState();
+    setCustomMarker();
+  }
+
   Set<Marker> _markers = {};
   BitmapDescriptor mapMarker;
   ScanResult scanResult;
@@ -33,39 +39,11 @@ class GoogleMapsState extends State<GoogleMaps> {
     ..removeWhere((e) => e == BarcodeFormat.unknown);
 
   List<BarcodeFormat> selectedFormats = [..._possibleFormats];
-  @override
-  void initState(){
-    super.initState();
-    setCustomMarker();
-  }
-
-  void setCustomMarker() async {
-    mapMarker = await BitmapDescriptor.fromAssetImage(
-        ImageConfiguration(),
-        "assets/images/kickboard_icon.png");
-  }
-
-  void _onMapCreated(GoogleMapController controller) {
-    setState(() {
-      //공대 36.3562174,127.4173272
-      _markers.add(
-        Marker(
-            markerId: MarkerId('1'),
-            position: LatLng(36.3544591, 127.4189559),
-            icon: mapMarker,
-            infoWindow: InfoWindow(
-              title: "한남대학교",
-              snippet: "학생회관"
-          )
-        )
-      );
-    });
-  }
 
   static final CameraPosition initialLocation = CameraPosition(
       // bearing: 192.8334901395799,
       // tilt: 59.440717697143555,
-      target: LatLng(36.3544591, 127.4189559),
+      target: LatLng(36.3544591, 127.4189559),//현재위치 받아오기
       zoom: 16,
   );
 
@@ -99,7 +77,6 @@ class GoogleMapsState extends State<GoogleMaps> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
-
   }
 
   Widget _qrChange() {
@@ -112,7 +89,6 @@ class GoogleMapsState extends State<GoogleMaps> {
       }
     });
   }
-
   Future<void> _scan() async {
     try {
       final result = await BarcodeScanner.scan(
@@ -145,6 +121,49 @@ class GoogleMapsState extends State<GoogleMaps> {
       });
     }
   }
+
+  void setCustomMarker() async {
+    mapMarker = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration(),
+        "assets/images/kickboard_icon.png");
+  }
+  void _onMapCreated(GoogleMapController controller) {
+    setState(() {
+      for(int mcounter = 0; mcounter<markerIds.length; mcounter++) {
+        _markers.add(
+          Marker(
+              markerId: markerIds[mcounter],
+              position: LatLng(lats[mcounter], lngs[mcounter]),
+              icon: mapMarker,
+              infoWindow: InfoWindow(
+                  title: titles[mcounter],
+                  snippet: snippets[mcounter]
+              )
+          ),
+        );
+      }
+    });
+  }
+  final markerIds = [
+    MarkerId("1"),
+    MarkerId("2"),
+  ];
+  final lats = [
+    36.354582,
+    36.356289,
+  ];
+  final lngs = [
+    127.419063,
+    127.419470,
+  ];
+  final titles = [
+    "한남대학교",
+    "한남대학교",
+  ];
+  final snippets = [
+    "학생회관",
+    "공과대학",
+  ];
 }
 
 // setState(() {
