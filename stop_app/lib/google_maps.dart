@@ -166,7 +166,7 @@ class GoogleMapsState extends State<GoogleMaps> {
     "한남대학교",
     "한남대학교",
     "한남대학교",
-    "카",
+    "카페",
   ];
   final snippets = [
     "학생회관",
