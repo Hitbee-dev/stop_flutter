@@ -177,7 +177,7 @@ class GoogleMapsState extends State<GoogleMaps> {
     "공과대학",
     "56기념관",
     "Sweet Buns"
-    "정문",
+    "정문 주차장",
   ];
 }
 
