@@ -181,6 +181,7 @@ if [[ "$CONFIGURATION" == "Debug" ]]; then
   install_framework "${BUILT_PRODUCTS_DIR}/geolocator/geolocator.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/image_gallery_saver/image_gallery_saver.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/image_picker/image_picker.framework"
+  install_framework "${BUILT_PRODUCTS_DIR}/location/location.framework"
 fi
 if [[ "$CONFIGURATION" == "Profile" ]]; then
   install_framework "${BUILT_PRODUCTS_DIR}/MTBBarcodeScanner/MTBBarcodeScanner.framework"
@@ -189,6 +190,7 @@ if [[ "$CONFIGURATION" == "Profile" ]]; then
   install_framework "${BUILT_PRODUCTS_DIR}/geolocator/geolocator.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/image_gallery_saver/image_gallery_saver.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/image_picker/image_picker.framework"
+  install_framework "${BUILT_PRODUCTS_DIR}/location/location.framework"
 fi
 if [[ "$CONFIGURATION" == "Release" ]]; then
   install_framework "${BUILT_PRODUCTS_DIR}/MTBBarcodeScanner/MTBBarcodeScanner.framework"
@@ -197,6 +199,7 @@ if [[ "$CONFIGURATION" == "Release" ]]; then
   install_framework "${BUILT_PRODUCTS_DIR}/geolocator/geolocator.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/image_gallery_saver/image_gallery_saver.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/image_picker/image_picker.framework"
+  install_framework "${BUILT_PRODUCTS_DIR}/location/location.framework"
 fi
 if [ "${COCOAPODS_PARALLEL_CODE_SIGN}" == "true" ]; then
   wait
