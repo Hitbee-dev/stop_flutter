@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stop_app/google_maps.dart';
 import 'package:stop_app/informations.dart';
+import 'package:stop_app/user_account.dart';
 
 class BottomButton extends StatefulWidget {
   BottomButton({
@@ -20,10 +21,10 @@ class _BottomButtonState extends State<BottomButton> {
 
   int _selectedIndex = 0;
 
-  static List<Widget> _screens = <Widget> [
+  static List<Widget> _screens = <Widget>[
     GoogleMaps(),
     Informations(),
-    Container(color: Colors.blue),
+    UserAccount(),
   ];
 
   @override
@@ -41,8 +42,7 @@ class _BottomButtonState extends State<BottomButton> {
           selectedItemColor: Colors.black87,
           currentIndex: _selectedIndex,
           onTap: _onBtmItemClick,
-        )
-    );
+        ));
   }
 
   void _onBtmItemClick(int index) {

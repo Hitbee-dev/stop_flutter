@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:io' show Platform;
-
 import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class QrScaning extends StatefulWidget {
   QrScaning({Key key}) : super(key: key);
+
   @override
   _QrScaningState createState() => _QrScaningState();
 }
@@ -94,7 +94,7 @@ class _QrScaningState extends State<QrScaning> {
             ),
             ...List.generate(
               _numberOfCameras,
-                  (i) => RadioListTile(
+              (i) => RadioListTile(
                 onChanged: (v) => setState(() => _selectedCamera = i),
                 value: i,
                 title: Text('Camera ${i + 1}'),
@@ -190,8 +190,8 @@ class _QrScaningState extends State<QrScaning> {
                 value: selectedFormats.length == _possibleFormats.length
                     ? true
                     : selectedFormats.isEmpty
-                    ? false
-                    : null,
+                        ? false
+                        : null,
                 onChanged: (checked) {
                   setState(() {
                     selectedFormats = [
@@ -205,11 +205,11 @@ class _QrScaningState extends State<QrScaning> {
               title: const Text('Detect barcode formats'),
               subtitle: const Text(
                 'If all are unselected, all possible '
-                    'platform formats will be used',
+                'platform formats will be used',
               ),
             ),
             ..._possibleFormats.map(
-                  (format) => CheckboxListTile(
+              (format) => CheckboxListTile(
                 value: selectedFormats.contains(format),
                 onChanged: (i) {
                   setState(() => selectedFormats.contains(format)
