@@ -13,6 +13,11 @@ class BottomButton extends StatefulWidget {
 }
 
 class _BottomButtonState extends State<BottomButton> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
   List<BottomNavigationBarItem> btmNavItems = [
     BottomNavigationBarItem(icon: Icon(Icons.map), label: "지도"),
     BottomNavigationBarItem(icon: Icon(Icons.info_outline), label: "주차 안내"),

@@ -1,4 +1,10 @@
 import 'dart:async';
+import 'dart:ui';
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:get_ip/get_ip.dart';
 import 'dart:collection';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +13,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:location/location.dart';
 import 'package:stop_app/model/kickboard_data.dart';
+import 'package:stop_app/Socket/Protocol.dart';
+import 'package:stop_app/Socket/PacketCreator.dart';
 
 class GoogleMaps extends StatefulWidget {
   @override
@@ -21,6 +29,10 @@ class GoogleMapsState extends State<GoogleMaps> {
     setPolygons();
     setCircles();
     print("latitude :${RealLats} + longitude :${RealLngs}");
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      connectToServer();
+    });
+    getIP();
   }
 
   final GlobalKey scaffoldKey = GlobalKey();
@@ -32,11 +44,20 @@ class GoogleMapsState extends State<GoogleMaps> {
   ScanResult scanResult;
   Location location = new Location();
 
+  Socket stopSocket;
+  Uint8List bytes = Uint8List(0);
+  String localIP = "";
+  String serverIP = "203.247.41.152";
+  int port = 50002;
+  int serverCheck = 0;
+  List<MessageItem> items = [];
+
   String qrcode_name = "QR SCAN";
   double RealLats = 36.356289;
   double RealLngs = 127.419470;
   int qrIndex = 0;
   int qrFlag = 1;
+  String Qrdatas = "";
 
   final _flashOnController = TextEditingController(text: 'Flash on');
   final _flashOffController = TextEditingController(text: 'Flash off');
@@ -49,15 +70,7 @@ class GoogleMapsState extends State<GoogleMaps> {
 
   @override
   Widget build(BuildContext context) {
-    final scanResult = this.scanResult;
-    if (scanResult != null) {
-      qrcode_name = scanResult.rawContent;
-    }
-    if (qrFlag == 0) {
-      qrcode_name = "QR SCAN";
-      qrFlag++;
-      qrIndex--;
-    }
+    qrButton();
     return Scaffold(
       key: scaffoldKey,
       body: GoogleMap(
@@ -134,6 +147,23 @@ class GoogleMapsState extends State<GoogleMaps> {
     }
   }
 
+  showSnackBarWithKey(String message) {
+    Scaffold.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      action: SnackBarAction(
+        label: '확인',
+        onPressed: () {},
+      ),
+    ));
+  }
+
+  void getIP() async {
+    var ip = await GetIp.ipAddress;
+    setState(() {
+      localIP = ip;
+    });
+  }
+
   void setCustomMarker() async {
     mapMarker = await BitmapDescriptor.fromAssetImage(
         ImageConfiguration(), "assets/images/kickboard_icon.png");
@@ -191,15 +221,22 @@ class GoogleMapsState extends State<GoogleMaps> {
               onTap: () {
                 Scaffold.of(scaffoldKey.currentContext).showBottomSheet(
                     (context) {
-                  return Container(
-                    padding: EdgeInsets.only(right: 80, top: 30),
-                    child: getBottomSheet(
-                      "${lats[mcounter]} , ${lngs[mcounter]}",
-                      "${kickboards[mcounter]}",
-                      "${kickboardcodes[mcounter]}",
-                      "${safetyphones[mcounter]}",
+                  return GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    // 키보드 올라왔을 때 화면터치로 내리기
+                    onTap: () {
+                      FocusScope.of(context).unfocus(); // 키보드 올라왔을 때 화면터치로 내리기
+                    },
+                    child: Container(
+                      padding: EdgeInsets.only(right: 80, top: 30),
+                      child: getBottomSheet(
+                        "${lats[mcounter]} , ${lngs[mcounter]}",
+                        "${kickboards[mcounter]}",
+                        "${kickboardcodes[mcounter]}",
+                        "${safetyphones[mcounter]}",
+                      ),
+                      height: 250,
                     ),
-                    height: 250,
                   );
                 }, backgroundColor: Colors.transparent);
               }),
@@ -333,7 +370,108 @@ class GoogleMapsState extends State<GoogleMaps> {
       ],
     );
   }
+
+  void qrButton() {
+    var scanResults = this.scanResult;
+    if (scanResults != null) {
+      Qrdatas = scanResults.rawContent;
+      print(Qrdatas);
+      (stopSocket != null) ? submitMessage() : null;
+      this.scanResult = null;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showSnackBarWithKey("대여 성공! 킥보드 넘버 : ${Qrdatas}");
+      });
+      qrcode_name = "반납하기";
+    }
+    if (qrFlag == 0) {
+      qrcode_name = "QR SCAN";
+      qrFlag++;
+      qrIndex--;
+    }
+  }
+
+  void submitMessage() {
+    setState(() {
+      items.insert(0, MessageItem(localIP, Qrdatas));
+    });
+    sendMessage(Qrdatas);
+  }
+
+  void sendMessage(String qrdata) {
+    stopSocket.write(PacketCreator.sendKickboardCode(qrdata));
+  }
+
+  void _storeServerIP() async {
+    SharedPreferences sp = await SharedPreferences.getInstance();
+    sp.setString("serverIP", serverIP);
+  }
+
+  void connectToServer() async {
+    print("Destination Address: ${serverIP}");
+    _storeServerIP();
+
+    Socket.connect(serverIP, port, timeout: Duration(seconds: 5))
+        .then((socket) {
+      setState(() {
+        stopSocket = socket;
+        serverCheck = 1;
+      });
+
+      showSnackBarWithKey(
+          // "Server : ${socket.remoteAddress.address}:${socket.remotePort} 연결되었습니다.");
+          "Server : 서버에 연결되었습니다.");
+      socket.listen(
+        (onData) {
+          String packet = String.fromCharCodes(onData).trim();
+          print(packet);
+          Map data = Protocol.Decoder(packet);
+          print(data);
+          setState(() {
+            items.insert(
+                0,
+                MessageItem(stopSocket.remoteAddress.address,
+                    String.fromCharCodes(onData).trim()));
+            Qrdatas = String.fromCharCodes(onData).trim();
+            print(items[0]);
+          });
+        },
+        // onDone: onDone,
+        // onError: onError,
+      );
+    }).catchError((e) {
+      showSnackBarWithKey(e.toString());
+    });
+  }
+
+  void onDone() {
+    showSnackBarWithKey("서버 연결이 종료되었습니다.");
+    serverCheck = 0;
+    disconnectFromServer();
+  }
+
+  void onError(e) {
+    print("onError: $e");
+    showSnackBarWithKey(e.toString());
+    disconnectFromServer();
+  }
+
+  void disconnectFromServer() {
+    print("disconnectFromServer");
+    showSnackBarWithKey("서버 연결이 종료되었습니다.");
+    stopSocket.close();
+    setState(() {
+      stopSocket = null;
+    });
+  }
 }
+
+class MessageItem {
+  String owner;
+  String content;
+
+  MessageItem(this.owner, this.content);
+}
+
 // setState(() {
 //   Navigator.push(context,
 //       MaterialPageRoute<void>(builder: (BuildContext context) {
