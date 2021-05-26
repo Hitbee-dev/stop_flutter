@@ -44,7 +44,7 @@ class GoogleMapsState extends State<GoogleMaps> {
   ScanResult scanResult;
   Location location = new Location();
 
-  Socket stopSocket;
+  static Socket stopSocket;
   Uint8List bytes = Uint8List(0);
   String localIP = "";
   String serverIP = "203.247.41.152";
@@ -394,11 +394,12 @@ class GoogleMapsState extends State<GoogleMaps> {
     setState(() {
       items.insert(0, MessageItem(localIP, Qrdatas));
     });
-    sendMessage(Qrdatas);
+    // sendMessage(Qrdatas);
+    stopSocket.write(PacketCreator.sendKickboardCode(Qrdatas));
   }
 
-  void sendMessage(String qrdata) {
-    stopSocket.write(PacketCreator.sendKickboardCode(qrdata));
+  void sendLoginMessage(String id, pw) {
+    stopSocket.write(PacketCreator.userLogin(id, pw));
   }
 
   void _storeServerIP() async {
