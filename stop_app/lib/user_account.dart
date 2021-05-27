@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:stop_app/Socket/PacketCreator.dart';
 import 'package:stop_app/google_maps.dart' as google_maps;
 
-class UserAccount extends StatefulWidget {
-  const UserAccount({Key key}) : super(key: key);
+import 'model/kickboard_data.dart';
 
+class UserAccount extends StatefulWidget {
   @override
-  _UserAccountState createState() => _UserAccountState();
+  UserAccountState createState() => UserAccountState();
 }
 
-class _UserAccountState extends State<UserAccount> {
+class UserAccountState extends State<UserAccount> {
   final GlobalKey scaffoldKey = GlobalKey();
   TextEditingController loginId;
   TextEditingController loginPw;
@@ -18,6 +18,7 @@ class _UserAccountState extends State<UserAccount> {
   bool loginVisible = true;
   bool memberVisible = false;
   bool accountVisible = false;
+  static String realTimeKickboard = "없음";
 
   @override
   void initState() {
@@ -28,6 +29,7 @@ class _UserAccountState extends State<UserAccount> {
 
   @override
   Widget build(BuildContext context) {
+    RTKickboard();
     return Scaffold(
       key: scaffoldKey,
       resizeToAvoidBottomInset: false,
@@ -38,6 +40,12 @@ class _UserAccountState extends State<UserAccount> {
           "마이페이지",
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
+        actions: [
+          IconButton(
+              icon: Icon(Icons.autorenew, color: Colors.black),
+              onPressed: updating),
+          SizedBox(width: 20)
+        ],
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -85,7 +93,7 @@ class _UserAccountState extends State<UserAccount> {
                   maintainAnimation: accountVisible,
                   maintainState: accountVisible,
                   visible: accountVisible,
-                  child: _accountLoginPage()),
+                  child: accountLoginPage()),
             ],
           ),
         ),
@@ -241,68 +249,125 @@ class _UserAccountState extends State<UserAccount> {
                 color: Colors.black)));
   }
 
-  Widget _accountLoginPage() {
-    return Column(
-      children: [
-        _topPaddingAdd(),
-        Text(
-          "${accountloginId}님 반가워요!",
-          style: TextStyle(
-              fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
-        ),
-        _topPaddingAdd(),
-        Text(
-          "대여중인 킥보드",
-          style: TextStyle(
-              fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
-        ),
-        _paddingline(),
-        Text(
-          "현재 대여중인 킥보드가 없어요!",
-          style: TextStyle(
-              fontSize: 14, fontWeight: FontWeight.normal, color: Colors.grey),
-        ),
-        _topPaddingAdd(),
-        Text(
-          "사용 이력",
-          style: TextStyle(
-              fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
-        ),
-        _paddingline(),
-        Text(
-          "대여 횟수 : 1",
-          style: TextStyle(
-              fontSize: 16, fontWeight: FontWeight.normal, color: Colors.black),
-        ),
-        Card(
-            color: Colors.white,
-            margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 25.0),
-            child: ListTile(
-              onTap: () {},
-              leading:
-                  Icon(Icons.qr_code_scanner, color: Colors.black, size: 25),
-              title: Text(
-                "킥보드 고유 번호 : 000001",
+  void updating() {
+    RTKickboard();
+  }
+
+  void RTKickboard() {
+    setState(() {
+      if (google_maps.GoogleMapsState.UserQr == "") {
+        realTimeKickboard = "없음";
+      } else {
+        realTimeKickboard = google_maps.GoogleMapsState.UserQr;
+        // print("account : ${google_maps.GoogleMapsState.UserQr}");
+      }
+    });
+  }
+
+  Widget accountLoginPage() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 30),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _topPaddingAdd(),
+          Center(
+            // padding: EdgeInsets.only(left: 50),
+            child: Text(
+              "${accountloginId}님 반가워요!",
+              style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black),
+            ),
+          ),
+          _topPaddingAdd(),
+          Text(
+            "대여중인 킥보드",
+            style: TextStyle(
+                fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+          ),
+          _paddingline(),
+          _topPaddingAdd(),
+          Center(
+            child: Text(
+              "현재 이용중인 킥보드 : ${realTimeKickboard}",
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.normal,
+                  color: Colors.grey),
+            ),
+          ),
+          _topPaddingAdd(),
+          Text(
+            "사용 이력",
+            style: TextStyle(
+                fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+          ),
+          _paddingline(),
+          _topPaddingAdd(),
+          Center(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: 10),
+              child: Text(
+                "대여 횟수 : ${usedKickboard.length}",
                 style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.normal,
                     color: Colors.black),
               ),
-            )),
-        TextButton(
-            onPressed: () {
-              setState(() {
-                loginShowWidget();
-              });
-            },
-            child: Text.rich(TextSpan(
-                text: "로그아웃",
-                style: TextStyle(
-                    decoration: TextDecoration.underline,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey))))
-      ],
+            ),
+          ),
+          SizedBox(
+            height: 200,
+            child: ListView.separated(
+              itemCount: usedKickboard.length,
+              itemBuilder: (context, index) {
+                return Card(
+                  color: Colors.white,
+                  margin: EdgeInsets.symmetric(vertical: 5.0, horizontal: 25.0),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        onTap: () {},
+                        leading: Icon(Icons.qr_code_scanner,
+                            color: Colors.black, size: 25),
+                        title: Text(
+                          "킥보드 고유 번호 : ${usedKickboard[index]}",
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black),
+                        ),
+                      )
+                    ],
+                  ),
+                );
+              },
+              separatorBuilder: (context, index) {
+                return Divider();
+              },
+            ),
+          ),
+          _topPaddingAdd(),
+          // Expanded(flex: 0, child: Container()), //맨 밑으로 보내기 위한 빈 공간 채우기
+          Center(
+            child: TextButton(
+                onPressed: () {
+                  setState(() {
+                    loginShowWidget();
+                  });
+                },
+                child: Text.rich(TextSpan(
+                    text: "로그아웃",
+                    style: TextStyle(
+                        decoration: TextDecoration.underline,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey)))),
+          )
+        ],
+      ),
     );
   }
 

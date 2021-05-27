@@ -15,6 +15,7 @@ import 'package:location/location.dart';
 import 'package:stop_app/model/kickboard_data.dart';
 import 'package:stop_app/Socket/Protocol.dart';
 import 'package:stop_app/Socket/PacketCreator.dart';
+import 'package:stop_app/user_account.dart' as Uaccount;
 
 class GoogleMaps extends StatefulWidget {
   @override
@@ -41,13 +42,13 @@ class GoogleMapsState extends State<GoogleMaps> {
   Set<Polygon> _polygons = HashSet<Polygon>();
   Set<Circle> _circles = HashSet<Circle>();
   BitmapDescriptor mapMarker;
-  ScanResult scanResult;
+  static ScanResult scanResult;
   Location location = new Location();
 
   static Socket stopSocket;
   Uint8List bytes = Uint8List(0);
   String localIP = "";
-  String serverIP = "203.247.41.152";
+  String serverIP = "182.229.179.75";
   int port = 50002;
   int serverCheck = 0;
   List<MessageItem> items = [];
@@ -57,7 +58,8 @@ class GoogleMapsState extends State<GoogleMaps> {
   double RealLngs = 127.419470;
   int qrIndex = 0;
   int qrFlag = 1;
-  String Qrdatas = "";
+  static String Qrdatas = "";
+  static String UserQr = "";
 
   final _flashOnController = TextEditingController(text: 'Flash on');
   final _flashOffController = TextEditingController(text: 'Flash off');
@@ -372,18 +374,24 @@ class GoogleMapsState extends State<GoogleMaps> {
   }
 
   void qrButton() {
-    var scanResults = this.scanResult;
+    var scanResults = scanResult;
     if (scanResults != null) {
       Qrdatas = scanResults.rawContent;
-      print(Qrdatas);
+      UserQr = scanResults.rawContent;
       (stopSocket != null) ? submitMessage() : null;
-      this.scanResult = null;
+      scanResult = null;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         showSnackBarWithKey("대여 성공! 킥보드 넘버 : ${Qrdatas}");
       });
+      // Uaccount.UserAccountState.realTimeKickboard = Qrdatas;
+      // Uaccount.UserAccountState.RTKickboard(Qrdatas);
       qrcode_name = "반납하기";
     }
     if (qrFlag == 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showSnackBarWithKey("반납 성공! 킥보드 넘버 : ${Qrdatas}");
+      });
+      Uaccount.UserAccountState.realTimeKickboard = "없음";
       qrcode_name = "QR SCAN";
       qrFlag++;
       qrIndex--;
