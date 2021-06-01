@@ -12,6 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:location/location.dart';
+import 'package:stop_app/bottom_button.dart';
 import 'package:stop_app/model/kickboard_data.dart';
 import 'package:stop_app/Socket/Protocol.dart';
 import 'package:stop_app/Socket/PacketCreator.dart';
@@ -51,8 +52,6 @@ class GoogleMapsState extends State<GoogleMaps> {
   String localIP = "";
   String serverIP = "182.229.179.75";
   int port = 50003;
-
-  // int port = 50002;
   int serverCheck = 0;
   List<MessageItem> items = [];
 
@@ -70,6 +69,7 @@ class GoogleMapsState extends State<GoogleMaps> {
   final _flashOffController = TextEditingController(text: 'Flash off');
   final _cancelController = TextEditingController(text: 'Cancel');
 
+  var markersIds = markerIds;
   var _aspectTolerance = 0.00;
   var _selectedCamera = -1;
   var _useAutoFocus = true;
@@ -135,7 +135,7 @@ class GoogleMapsState extends State<GoogleMaps> {
       qrFlag = 0;
       showSnackBarWithKey("대여 성공! 킥보드 넘버 : ${Qrdatas}");
       qrcode_name = "반납하기";
-      QrList = Qrdatas;
+      markerUpdate();
     } else if (res == 1) {
       showSnackBarWithKey("킥보드가 이미 사용중 입니다.");
     } else {
@@ -149,7 +149,7 @@ class GoogleMapsState extends State<GoogleMaps> {
     });
     UserQr = "없음";
     qrcode_name = "QR SCAN";
-    QrList = "";
+    // QrList = "";
     qrFlag = 1;
     qrIndex = 0;
   }
@@ -162,6 +162,7 @@ class GoogleMapsState extends State<GoogleMaps> {
       (stopSocket != null) ? submitMessage() : null;
       scanResult = null;
       qrIndex = 2;
+      QrList = Qrdatas;
     }
   }
 
@@ -267,17 +268,22 @@ class GoogleMapsState extends State<GoogleMaps> {
         strokeWidth: 2));
   }
 
+  void markerUpdate() {
+    setState(() {
+      if (QrList != "") {
+        var removeMarkers = kickboardcodes.indexOf(QrList);
+        markersIds.removeAt(removeMarkers);
+      }
+    });
+  }
+
   void _onMapCreated(GoogleMapController googleMapController) {
     _completerController.complete(googleMapController);
     setState(() {
-      for (int mcounter = 0; mcounter < markerIds.length; mcounter++) {
-        if (QrList != "") {
-          var removeMarkers = kickboardcodes.indexOf(QrList);
-          markerIds.removeAt(removeMarkers);
-        }
+      for (int mcounter = 0; mcounter < markersIds.length; mcounter++) {
         _markers.add(
           Marker(
-              markerId: markerIds[mcounter],
+              markerId: markersIds[mcounter],
               position: LatLng(lats[mcounter], lngs[mcounter]),
               icon: mapMarker,
               infoWindow:
@@ -461,9 +467,6 @@ class GoogleMapsState extends State<GoogleMaps> {
           Map data = Protocol.Decoder(packet);
           print(data);
           packetHandler(data);
-          // String resdata = data.toString();
-          // rescount = Protocol.resDecoder(resdata);
-          // print("rescount : ${rescount}");
 
           setState(() {
             items.insert(
@@ -472,7 +475,7 @@ class GoogleMapsState extends State<GoogleMaps> {
                     String.fromCharCodes(onData).trim()));
           });
         },
-        // onDone: onDone,
+        onDone: onDone,
         // onError: onError,
       );
     }).catchError((e) {
@@ -481,7 +484,6 @@ class GoogleMapsState extends State<GoogleMaps> {
   }
 
   void onDone() {
-    showSnackBarWithKey("서버 연결이 종료되었습니다.");
     serverCheck = 0;
     disconnectFromServer();
   }

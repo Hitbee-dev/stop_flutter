@@ -1,6 +1,6 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-List<MarkerId> markerIds = [
+var markerIds = [
   MarkerId("0"),
   MarkerId("1"),
   MarkerId("2"),

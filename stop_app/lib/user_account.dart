@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stop_app/Socket/PacketCreator.dart';
 import 'package:stop_app/google_maps.dart' as google_maps;
-
 import 'model/kickboard_data.dart';
 
 class UserAccount extends StatefulWidget {

@@ -9,10 +9,10 @@ class BottomButton extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _BottomButtonState createState() => _BottomButtonState();
+  BottomButtonState createState() => BottomButtonState();
 }
 
-class _BottomButtonState extends State<BottomButton> {
+class BottomButtonState extends State<BottomButton> {
   @override
   void initState() {
     super.initState();
@@ -26,7 +26,7 @@ class _BottomButtonState extends State<BottomButton> {
 
   int _selectedIndex = 0;
 
-  static List<Widget> _screens = <Widget>[
+  static List<Widget> screens = <Widget>[
     GoogleMaps(),
     Informations(),
     UserAccount(),
@@ -37,7 +37,7 @@ class _BottomButtonState extends State<BottomButton> {
     return Scaffold(
         body: IndexedStack(
           index: _selectedIndex,
-          children: _screens,
+          children: screens,
         ),
         bottomNavigationBar: BottomNavigationBar(
           showSelectedLabels: true,
