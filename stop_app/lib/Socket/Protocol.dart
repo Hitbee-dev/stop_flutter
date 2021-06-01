@@ -26,6 +26,12 @@ class Protocol {
     return dict;
   }
 
+  static String resDecoder(String res) {
+    String resorigin = res.substring(res.lastIndexOf("res: "));
+    String resdata = resorigin.substring(5, 6);
+    return resdata;
+  }
+
   static String Encoder(Map data) {
     String packet = "";
     data.forEach((key, value) {

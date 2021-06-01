@@ -61,6 +61,7 @@ class GoogleMapsState extends State<GoogleMaps> {
   double RealLngs = 127.419470;
   int qrIndex = 0;
   int qrFlag = 1;
+  String rescount = "";
   static String Qrdatas = "";
   static String UserQr = "";
   static var QrList = "";
@@ -99,21 +100,6 @@ class GoogleMapsState extends State<GoogleMaps> {
     );
   }
 
-  Widget _qrChange() {
-    setState(() {
-      if (UserAccountState.loginStatus == true) {
-        if (qrIndex == 0) {
-          _scan();
-          qrIndex++;
-        } else {
-          qrFlag--;
-        }
-      } else {
-        showSnackBarWithKey("로그인 후 이용해주세요.");
-      }
-    });
-  }
-
   static final _possibleFormats = BarcodeFormat.values.toList()
     ..removeWhere((e) => e == BarcodeFormat.unknown);
 
@@ -124,6 +110,70 @@ class GoogleMapsState extends State<GoogleMaps> {
     target: LatLng(36.353918, 127.422101),
     zoom: 15,
   );
+
+  Widget _qrChange() {
+    setState(() {
+      if (UserAccountState.loginStatus == true) {
+        if (qrIndex == 0) {
+          _scan();
+        } else if (qrIndex == 1) {
+          if (qrFlag == 0) {
+            returnMessage();
+            qrIndex = 2;
+          }
+        }
+      } else {
+        showSnackBarWithKey("로그인 후 이용해주세요.");
+      }
+    });
+  }
+
+  void qrRent(int res) {
+    qrIndex = 0;
+    if (res == 2) {
+      qrIndex = 1;
+      qrFlag = 0;
+      showSnackBarWithKey("대여 성공! 킥보드 넘버 : ${Qrdatas}");
+      qrcode_name = "반납하기";
+      QrList = Qrdatas;
+    } else if (res == 1) {
+      showSnackBarWithKey("킥보드가 이미 사용중 입니다.");
+    } else {
+      showSnackBarWithKey("없는 킥보드 입니다.");
+    }
+  }
+
+  void qrReturn() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showSnackBarWithKey("반납 성공! 킥보드 넘버 : ${Qrdatas}");
+    });
+    UserQr = "없음";
+    qrcode_name = "QR SCAN";
+    QrList = "";
+    qrFlag = 1;
+    qrIndex = 0;
+  }
+
+  void qrButton() {
+    var scanResults = scanResult;
+    if (scanResult != null) {
+      Qrdatas = scanResults.rawContent;
+      UserQr = scanResults.rawContent;
+      (stopSocket != null) ? submitMessage() : null;
+      scanResult = null;
+      qrIndex = 2;
+    }
+  }
+
+  void packetHandler(Map data) {
+    int part = data["part"];
+    if (part == PacketCreator.KICKBOARD_REQ) {
+      qrRent(data["res"]);
+    }
+    if (part == PacketCreator.KICKBOARD_RET) {
+      qrReturn();
+    }
+  }
 
   Future<void> _scan() async {
     try {
@@ -385,33 +435,6 @@ class GoogleMapsState extends State<GoogleMaps> {
     );
   }
 
-  void qrButton() {
-    var scanResults = scanResult;
-    if (scanResults != null) {
-      Qrdatas = scanResults.rawContent;
-      UserQr = scanResults.rawContent;
-      (stopSocket != null) ? submitMessage() : null;
-      scanResult = null;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        showSnackBarWithKey("대여 성공! 킥보드 넘버 : ${Qrdatas}");
-        QrList = Qrdatas;
-      });
-      qrcode_name = "반납하기";
-    }
-    if (qrFlag == 0) {
-      returnMessage();
-      if (qrFlag == 0) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          showSnackBarWithKey("반납 성공! 킥보드 넘버 : ${Qrdatas}");
-        });
-        UserQr = "없음";
-        qrcode_name = "QR SCAN";
-        qrFlag++;
-        qrIndex--;
-      }
-    }
-  }
-
   void _storeServerIP() async {
     SharedPreferences sp = await SharedPreferences.getInstance();
     sp.setString("serverIP", serverIP);
@@ -437,6 +460,11 @@ class GoogleMapsState extends State<GoogleMaps> {
           // print(packet);
           Map data = Protocol.Decoder(packet);
           print(data);
+          packetHandler(data);
+          // String resdata = data.toString();
+          // rescount = Protocol.resDecoder(resdata);
+          // print("rescount : ${rescount}");
+
           setState(() {
             items.insert(
                 0,
