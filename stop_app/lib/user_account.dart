@@ -15,6 +15,7 @@ class UserAccountState extends State<UserAccount> {
   TextEditingController loginPw;
   String accountloginId = "";
   String accountloginPw = "";
+  static bool loginStatus = false;
   bool loginVisible = true;
   bool memberVisible = false;
   bool accountVisible = false;
@@ -193,14 +194,20 @@ class UserAccountState extends State<UserAccount> {
     return TextButton(
         onPressed: () {
           setState(() {
-            google_maps.GoogleMapsState.stopSocket
-                .write(PacketCreator.userLogin(loginId.text, loginPw.text));
-            accountloginId = loginId.text;
-            accountloginPw = loginPw.text;
-            loginId.text = "";
-            loginPw.text = "";
-            loginWidget();
-            showSnackBarWithKey("로그인 성공!");
+            if (loginId.text != "") {
+              google_maps.GoogleMapsState.stopSocket
+                  .write(PacketCreator.userLogin(loginId.text, loginPw.text));
+              accountloginId = loginId.text;
+              accountloginPw = loginPw.text;
+              loginId.text = "";
+              loginPw.text = "";
+              loginWidget();
+              showSnackBarWithKey("로그인 성공!");
+              loginStatus = true;
+            } else {
+              showSnackBarWithKey("로그인 실패!");
+              loginStatus = false;
+            }
           });
         },
         child: Text("로그인",
@@ -259,7 +266,6 @@ class UserAccountState extends State<UserAccount> {
         realTimeKickboard = "없음";
       } else {
         realTimeKickboard = google_maps.GoogleMapsState.UserQr;
-        // print("account : ${google_maps.GoogleMapsState.UserQr}");
       }
     });
   }

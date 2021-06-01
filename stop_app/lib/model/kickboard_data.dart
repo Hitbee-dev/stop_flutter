@@ -1,11 +1,11 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-final markerIds = [
+List<MarkerId> markerIds = [
+  MarkerId("0"),
   MarkerId("1"),
   MarkerId("2"),
   MarkerId("3"),
   MarkerId("4"),
-  MarkerId("5"),
 ];
 final lats = [
   36.354582,
@@ -39,7 +39,7 @@ final kickboards = [
   "전동킥보드 version.5",
 ];
 
-final kickboardcodes = [
+var kickboardcodes = [
   "000000",
   "000001",
   "000002",
@@ -55,7 +55,7 @@ final safetyphones = [
   "0541-5555-5555",
 ];
 
-final usedKickboard = [
+var usedKickboard = [
   "000000",
   "000001",
   "000002",

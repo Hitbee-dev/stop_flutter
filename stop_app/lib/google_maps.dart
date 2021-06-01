@@ -15,7 +15,7 @@ import 'package:location/location.dart';
 import 'package:stop_app/model/kickboard_data.dart';
 import 'package:stop_app/Socket/Protocol.dart';
 import 'package:stop_app/Socket/PacketCreator.dart';
-import 'package:stop_app/user_account.dart' as Uaccount;
+import 'package:stop_app/user_account.dart';
 
 class GoogleMaps extends StatefulWidget {
   @override
@@ -36,6 +36,7 @@ class GoogleMapsState extends State<GoogleMaps> {
     getIP();
   }
 
+  // GoogleMapController gmController;
   final GlobalKey scaffoldKey = GlobalKey();
   Completer _completerController = Completer();
   Set<Marker> _markers = HashSet<Marker>();
@@ -49,7 +50,9 @@ class GoogleMapsState extends State<GoogleMaps> {
   Uint8List bytes = Uint8List(0);
   String localIP = "";
   String serverIP = "182.229.179.75";
-  int port = 50002;
+  int port = 50003;
+
+  // int port = 50002;
   int serverCheck = 0;
   List<MessageItem> items = [];
 
@@ -60,6 +63,7 @@ class GoogleMapsState extends State<GoogleMaps> {
   int qrFlag = 1;
   static String Qrdatas = "";
   static String UserQr = "";
+  static var QrList = "";
 
   final _flashOnController = TextEditingController(text: 'Flash on');
   final _flashOffController = TextEditingController(text: 'Flash off');
@@ -97,11 +101,15 @@ class GoogleMapsState extends State<GoogleMaps> {
 
   Widget _qrChange() {
     setState(() {
-      if (qrIndex == 0) {
-        _scan();
-        qrIndex++;
+      if (UserAccountState.loginStatus == true) {
+        if (qrIndex == 0) {
+          _scan();
+          qrIndex++;
+        } else {
+          qrFlag--;
+        }
       } else {
-        qrFlag--;
+        showSnackBarWithKey("로그인 후 이용해주세요.");
       }
     });
   }
@@ -213,6 +221,10 @@ class GoogleMapsState extends State<GoogleMaps> {
     _completerController.complete(googleMapController);
     setState(() {
       for (int mcounter = 0; mcounter < markerIds.length; mcounter++) {
+        if (QrList != "") {
+          var removeMarkers = kickboardcodes.indexOf(QrList);
+          markerIds.removeAt(removeMarkers);
+        }
         _markers.add(
           Marker(
               markerId: markerIds[mcounter],
@@ -382,32 +394,22 @@ class GoogleMapsState extends State<GoogleMaps> {
       scanResult = null;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         showSnackBarWithKey("대여 성공! 킥보드 넘버 : ${Qrdatas}");
+        QrList = Qrdatas;
       });
-      // Uaccount.UserAccountState.realTimeKickboard = Qrdatas;
-      // Uaccount.UserAccountState.RTKickboard(Qrdatas);
       qrcode_name = "반납하기";
     }
     if (qrFlag == 0) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        showSnackBarWithKey("반납 성공! 킥보드 넘버 : ${Qrdatas}");
-      });
-      Uaccount.UserAccountState.realTimeKickboard = "없음";
-      qrcode_name = "QR SCAN";
-      qrFlag++;
-      qrIndex--;
+      returnMessage();
+      if (qrFlag == 0) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          showSnackBarWithKey("반납 성공! 킥보드 넘버 : ${Qrdatas}");
+        });
+        UserQr = "없음";
+        qrcode_name = "QR SCAN";
+        qrFlag++;
+        qrIndex--;
+      }
     }
-  }
-
-  void submitMessage() {
-    setState(() {
-      items.insert(0, MessageItem(localIP, Qrdatas));
-    });
-    // sendMessage(Qrdatas);
-    stopSocket.write(PacketCreator.sendKickboardCode(Qrdatas));
-  }
-
-  void sendLoginMessage(String id, pw) {
-    stopSocket.write(PacketCreator.userLogin(id, pw));
   }
 
   void _storeServerIP() async {
@@ -432,7 +434,7 @@ class GoogleMapsState extends State<GoogleMaps> {
       socket.listen(
         (onData) {
           String packet = String.fromCharCodes(onData).trim();
-          print(packet);
+          // print(packet);
           Map data = Protocol.Decoder(packet);
           print(data);
           setState(() {
@@ -440,8 +442,6 @@ class GoogleMapsState extends State<GoogleMaps> {
                 0,
                 MessageItem(stopSocket.remoteAddress.address,
                     String.fromCharCodes(onData).trim()));
-            Qrdatas = String.fromCharCodes(onData).trim();
-            print(items[0]);
           });
         },
         // onDone: onDone,
@@ -471,6 +471,18 @@ class GoogleMapsState extends State<GoogleMaps> {
     setState(() {
       stopSocket = null;
     });
+  }
+
+  void submitMessage() {
+    stopSocket.write(PacketCreator.kickboardReq(Qrdatas));
+  }
+
+  void returnMessage() {
+    stopSocket.write(PacketCreator.kickboardRet(Qrdatas));
+  }
+
+  void sendLoginMessage(String id, pw) {
+    stopSocket.write(PacketCreator.userLogin(id, pw));
   }
 }
 
