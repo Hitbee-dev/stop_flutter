@@ -1,5 +1,5 @@
 class Protocol {
-  static final int HEADER_SIZE = 6;
+  static final int HEADER_SIZE = 8;
   static Map Decoder(String packet) {
     Map dict = new Map();
     String data = packet.substring(HEADER_SIZE);

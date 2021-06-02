@@ -39,7 +39,7 @@ dependencies:
   fluster: ^1.2.0
   get_ip: ^0.4.0
   shared_preferences: ^2.0.5
-
+  sn_progress_dialog: ^1.0.2
 
 dev_dependencies:
   flutter_test:

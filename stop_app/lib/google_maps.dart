@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'dart:io';
 import 'dart:typed_data';
-
+import 'package:sn_progress_dialog/sn_progress_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get_ip/get_ip.dart';
 import 'dart:collection';
@@ -119,6 +119,7 @@ class GoogleMapsState extends State<GoogleMaps> {
         } else if (qrIndex == 1) {
           if (qrFlag == 0) {
             returnMessage();
+            normalProgress(context);
             qrIndex = 2;
           }
         }
@@ -173,6 +174,25 @@ class GoogleMapsState extends State<GoogleMaps> {
     }
     if (part == PacketCreator.KICKBOARD_RET) {
       qrReturn();
+    }
+  }
+
+  void normalProgress(context) async {
+    /// Create progress dialog
+    ProgressDialog pd = ProgressDialog(context: context);
+    int imageSize = 6266880;
+
+    /// Set options
+    /// Max and msg required
+    pd.show(
+      max: imageSize,
+      msg: '사진 파일을 전송하는중...',
+      progressBgColor: Colors.transparent,
+    );
+    for (int i = 0; i <= imageSize; i++) {
+      pd.update(value: i);
+      i++;
+      await Future.delayed(Duration(microseconds: 50));
     }
   }
 
@@ -467,7 +487,6 @@ class GoogleMapsState extends State<GoogleMaps> {
           Map data = Protocol.Decoder(packet);
           print(data);
           packetHandler(data);
-
           setState(() {
             items.insert(
                 0,
