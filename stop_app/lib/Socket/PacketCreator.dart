@@ -5,6 +5,7 @@ class PacketCreator {
   static final int USER_MEMBER = 102;
   static final int KICKBOARD_REQ = 103;
   static final int KICKBOARD_RET = 104;
+  static final int LOADING_DIALOG = 300;
 
   static String userLogin(String id, String pw) {
     Map data = new Map();
@@ -32,6 +33,13 @@ class PacketCreator {
   static String kickboardRet(String code) {
     Map data = new Map();
     data["part"] = KICKBOARD_RET;
+    data["code"] = code;
+    return Protocol.Encoder(data);
+  }
+
+  static String dialog(String code) {
+    Map data = new Map();
+    data["part"] = LOADING_DIALOG;
     data["code"] = code;
     return Protocol.Encoder(data);
   }

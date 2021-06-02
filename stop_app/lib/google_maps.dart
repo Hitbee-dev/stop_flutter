@@ -40,7 +40,7 @@ class GoogleMapsState extends State<GoogleMaps> {
   // GoogleMapController gmController;
   final GlobalKey scaffoldKey = GlobalKey();
   Completer _completerController = Completer();
-  Set<Marker> _markers = HashSet<Marker>();
+  Set<Marker> markers = HashSet<Marker>();
   Set<Polygon> _polygons = HashSet<Polygon>();
   Set<Circle> _circles = HashSet<Circle>();
   BitmapDescriptor mapMarker;
@@ -60,6 +60,9 @@ class GoogleMapsState extends State<GoogleMaps> {
   double RealLngs = 127.419470;
   int qrIndex = 0;
   int qrFlag = 1;
+  int dlSize = 0;
+  int krent = 0;
+  int kreturn = 0;
   String rescount = "";
   static String Qrdatas = "";
   static String UserQr = "";
@@ -69,7 +72,6 @@ class GoogleMapsState extends State<GoogleMaps> {
   final _flashOffController = TextEditingController(text: 'Flash off');
   final _cancelController = TextEditingController(text: 'Cancel');
 
-  var markersIds = markerIds;
   var _aspectTolerance = 0.00;
   var _selectedCamera = -1;
   var _useAutoFocus = true;
@@ -83,7 +85,7 @@ class GoogleMapsState extends State<GoogleMaps> {
       body: GoogleMap(
         mapType: MapType.normal,
         initialCameraPosition: initialLocation,
-        markers: _markers,
+        markers: markers,
         polygons: _polygons,
         circles: _circles,
         myLocationButtonEnabled: true,
@@ -136,7 +138,6 @@ class GoogleMapsState extends State<GoogleMaps> {
       qrFlag = 0;
       showSnackBarWithKey("대여 성공! 킥보드 넘버 : ${Qrdatas}");
       qrcode_name = "반납하기";
-      markerUpdate();
     } else if (res == 1) {
       showSnackBarWithKey("킥보드가 이미 사용중 입니다.");
     } else {
@@ -144,15 +145,21 @@ class GoogleMapsState extends State<GoogleMaps> {
     }
   }
 
-  void qrReturn() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      showSnackBarWithKey("반납 성공! 킥보드 넘버 : ${Qrdatas}");
-    });
-    UserQr = "없음";
-    qrcode_name = "QR SCAN";
-    // QrList = "";
-    qrFlag = 1;
-    qrIndex = 0;
+  void qrReturn(int res) {
+    if (res == 2) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showSnackBarWithKey("반납 성공! 킥보드 넘버 : ${Qrdatas}");
+      });
+      UserQr = "없음";
+      qrcode_name = "QR SCAN";
+      // QrList = "";
+      qrFlag = 1;
+      qrIndex = 0;
+    } else if (res == 1) {
+      showSnackBarWithKey("이미 반납된 킥보드입니다.");
+    } else {
+      showSnackBarWithKey("없는 킥보드입니다.");
+    }
   }
 
   void qrButton() {
@@ -171,28 +178,49 @@ class GoogleMapsState extends State<GoogleMaps> {
     int part = data["part"];
     if (part == PacketCreator.KICKBOARD_REQ) {
       qrRent(data["res"]);
+      krent = data["res"];
+      print("packetH : ${krent}");
     }
     if (part == PacketCreator.KICKBOARD_RET) {
-      qrReturn();
+      qrReturn(data["res"]);
+      kreturn = data["res"];
+    }
+    if (part == PacketCreator.LOADING_DIALOG) {
+      qrDialog(data["dialog"]);
     }
   }
 
-  void normalProgress(context) async {
-    /// Create progress dialog
-    ProgressDialog pd = ProgressDialog(context: context);
-    int imageSize = 6266880;
+  void qrDialog(int dialog) {
+    setState(() {
+      dlSize = dialog;
+    });
+  }
 
-    /// Set options
-    /// Max and msg required
+  void normalProgress(context) async {
+    ProgressDialog pd = ProgressDialog(context: context);
+    int imageSize = 10000000;
+
     pd.show(
       max: imageSize,
-      msg: '사진 파일을 전송하는중...',
+      msg: '킥보드 반납 요청 중...',
       progressBgColor: Colors.transparent,
     );
     for (int i = 0; i <= imageSize; i++) {
       pd.update(value: i);
-      i++;
-      await Future.delayed(Duration(microseconds: 50));
+      if (dlSize == 1) {
+        i = imageSize;
+        dlSize = 0;
+        pd.update(value: i);
+      } else if (dlSize == 2) {
+        i = imageSize;
+        pd.update(value: i);
+        showSnackBarWithKey("반납할 수 없습니다.");
+        dlSize = 0;
+        qrIndex = 1;
+      } else {
+        i++;
+      }
+      await Future.delayed(Duration(microseconds: 30));
     }
   }
 
@@ -288,50 +316,81 @@ class GoogleMapsState extends State<GoogleMaps> {
         strokeWidth: 2));
   }
 
-  void markerUpdate() {
-    setState(() {
-      if (QrList != "") {
-        var removeMarkers = kickboardcodes.indexOf(QrList);
-        markersIds.removeAt(removeMarkers);
-      }
-    });
-  }
-
   void _onMapCreated(GoogleMapController googleMapController) {
     _completerController.complete(googleMapController);
     setState(() {
-      for (int mcounter = 0; mcounter < markersIds.length; mcounter++) {
-        _markers.add(
-          Marker(
-              markerId: markersIds[mcounter],
-              position: LatLng(lats[mcounter], lngs[mcounter]),
-              icon: mapMarker,
-              infoWindow:
-                  InfoWindow(title: titles[0], snippet: snippets[mcounter]),
-              onTap: () {
-                Scaffold.of(scaffoldKey.currentContext).showBottomSheet(
-                    (context) {
-                  return GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    // 키보드 올라왔을 때 화면터치로 내리기
-                    onTap: () {
-                      FocusScope.of(context).unfocus(); // 키보드 올라왔을 때 화면터치로 내리기
-                    },
-                    child: Container(
-                      padding: EdgeInsets.only(right: 80, top: 30),
-                      child: getBottomSheet(
-                        "${lats[mcounter]} , ${lngs[mcounter]}",
-                        "${kickboards[mcounter]}",
-                        "${kickboardcodes[mcounter]}",
-                        "${safetyphones[mcounter]}",
+      if (krent == 2) {
+        print(krent);
+        for (int mcounter = 0; mcounter < markerIds.length; mcounter++) {
+          markers.remove(
+            Marker(
+                markerId: markerIds[mcounter],
+                position: LatLng(lats[mcounter], lngs[mcounter]),
+                icon: mapMarker,
+                infoWindow:
+                    InfoWindow(title: titles[0], snippet: snippets[mcounter]),
+                onTap: () {
+                  Scaffold.of(scaffoldKey.currentContext).showBottomSheet(
+                      (context) {
+                    return GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      // 키보드 올라왔을 때 화면터치로 내리기
+                      onTap: () {
+                        FocusScope.of(context)
+                            .unfocus(); // 키보드 올라왔을 때 화면터치로 내리기
+                      },
+                      child: Container(
+                        padding: EdgeInsets.only(right: 80, top: 30),
+                        child: getBottomSheet(
+                          "${lats[mcounter]} , ${lngs[mcounter]}",
+                          "${kickboards[mcounter]}",
+                          "${kickboardcodes[mcounter]}",
+                          "${safetyphones[mcounter]}",
+                        ),
+                        height: 250,
                       ),
-                      height: 250,
-                    ),
-                  );
-                }, backgroundColor: Colors.transparent);
-              }),
-        );
+                    );
+                  }, backgroundColor: Colors.transparent);
+                }),
+          );
+        }
+      } else {
+        print("krent : ${krent}");
+        for (int mcounter = 0; mcounter < markerIds.length; mcounter++) {
+          markers.add(
+            Marker(
+                markerId: markerIds[mcounter],
+                position: LatLng(lats[mcounter], lngs[mcounter]),
+                icon: mapMarker,
+                infoWindow:
+                    InfoWindow(title: titles[0], snippet: snippets[mcounter]),
+                onTap: () {
+                  Scaffold.of(scaffoldKey.currentContext).showBottomSheet(
+                      (context) {
+                    return GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      // 키보드 올라왔을 때 화면터치로 내리기
+                      onTap: () {
+                        FocusScope.of(context)
+                            .unfocus(); // 키보드 올라왔을 때 화면터치로 내리기
+                      },
+                      child: Container(
+                        padding: EdgeInsets.only(right: 80, top: 30),
+                        child: getBottomSheet(
+                          "${lats[mcounter]} , ${lngs[mcounter]}",
+                          "${kickboards[mcounter]}",
+                          "${kickboardcodes[mcounter]}",
+                          "${safetyphones[mcounter]}",
+                        ),
+                        height: 250,
+                      ),
+                    );
+                  }, backgroundColor: Colors.transparent);
+                }),
+          );
+        }
       }
+
       location.onLocationChanged.listen((LocationData currentLocation) {
         RealLats = currentLocation.latitude;
         RealLngs = currentLocation.longitude;
