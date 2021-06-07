@@ -37,7 +37,8 @@ class GoogleMapsState extends State<GoogleMaps> {
     getIP();
   }
 
-  // GoogleMapController gmController;
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
+      GlobalKey<RefreshIndicatorState>();
   final GlobalKey scaffoldKey = GlobalKey();
   Completer _completerController = Completer();
   Set<Marker> markers = HashSet<Marker>();
@@ -72,6 +73,9 @@ class GoogleMapsState extends State<GoogleMaps> {
   final _flashOffController = TextEditingController(text: 'Flash off');
   final _cancelController = TextEditingController(text: 'Cancel');
 
+  var markersIds = markerIds;
+  var latitudes = lats;
+  var longitudes = lngs;
   var _aspectTolerance = 0.00;
   var _selectedCamera = -1;
   var _useAutoFocus = true;
@@ -80,25 +84,29 @@ class GoogleMapsState extends State<GoogleMaps> {
   @override
   Widget build(BuildContext context) {
     qrButton();
-    return Scaffold(
-      key: scaffoldKey,
-      body: GoogleMap(
-        mapType: MapType.normal,
-        initialCameraPosition: initialLocation,
-        markers: markers,
-        polygons: _polygons,
-        circles: _circles,
-        myLocationButtonEnabled: true,
-        myLocationEnabled: true,
-        onMapCreated: _onMapCreated,
+    return RefreshIndicator(
+      key: _refreshIndicatorKey,
+      onRefresh: _onRefresh,
+      child: Scaffold(
+        key: scaffoldKey,
+        body: GoogleMap(
+          mapType: MapType.normal,
+          initialCameraPosition: initialLocation,
+          polygons: _polygons,
+          circles: _circles,
+          myLocationButtonEnabled: true,
+          myLocationEnabled: true,
+          onMapCreated: _onMapCreated,
+          markers: markers,
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: _qrChange,
+          backgroundColor: Colors.black,
+          label: Text(qrcode_name),
+          icon: Icon(Icons.qr_code_scanner),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _qrChange,
-        backgroundColor: Colors.black,
-        label: Text(qrcode_name),
-        icon: Icon(Icons.qr_code_scanner),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
@@ -179,14 +187,25 @@ class GoogleMapsState extends State<GoogleMaps> {
     if (part == PacketCreator.KICKBOARD_REQ) {
       qrRent(data["res"]);
       krent = data["res"];
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _refreshIndicatorKey.currentState.show(); // Google Map 화면 업데이트
+      });
       print("packetH : ${krent}");
     }
     if (part == PacketCreator.KICKBOARD_RET) {
       qrReturn(data["res"]);
       kreturn = data["res"];
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _refreshIndicatorKey.currentState.show(); // Google Map 화면 업데이트
+      });
+      print("packetV : ${krent}");
     }
     if (part == PacketCreator.LOADING_DIALOG) {
       qrDialog(data["dialog"]);
+      print("dialog : ${data["dialog"]}");
+    }
+    if (part == PacketCreator.KICKBOARD_DATA) {
+      // qrDialog(data["dialog"]);
     }
   }
 
@@ -198,7 +217,7 @@ class GoogleMapsState extends State<GoogleMaps> {
 
   void normalProgress(context) async {
     ProgressDialog pd = ProgressDialog(context: context);
-    int imageSize = 10000000;
+    int imageSize = 4000000;
 
     pd.show(
       max: imageSize,
@@ -319,76 +338,37 @@ class GoogleMapsState extends State<GoogleMaps> {
   void _onMapCreated(GoogleMapController googleMapController) {
     _completerController.complete(googleMapController);
     setState(() {
-      if (krent == 2) {
-        print(krent);
-        for (int mcounter = 0; mcounter < markerIds.length; mcounter++) {
-          markers.remove(
-            Marker(
-                markerId: markerIds[mcounter],
-                position: LatLng(lats[mcounter], lngs[mcounter]),
-                icon: mapMarker,
-                infoWindow:
-                    InfoWindow(title: titles[0], snippet: snippets[mcounter]),
-                onTap: () {
-                  Scaffold.of(scaffoldKey.currentContext).showBottomSheet(
-                      (context) {
-                    return GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      // 키보드 올라왔을 때 화면터치로 내리기
-                      onTap: () {
-                        FocusScope.of(context)
-                            .unfocus(); // 키보드 올라왔을 때 화면터치로 내리기
-                      },
-                      child: Container(
-                        padding: EdgeInsets.only(right: 80, top: 30),
-                        child: getBottomSheet(
-                          "${lats[mcounter]} , ${lngs[mcounter]}",
-                          "${kickboards[mcounter]}",
-                          "${kickboardcodes[mcounter]}",
-                          "${safetyphones[mcounter]}",
-                        ),
-                        height: 250,
+      for (int mcounter = 0; mcounter < markersIds.length; mcounter++) {
+        markers.add(
+          Marker(
+              markerId: markersIds[mcounter],
+              position: LatLng(latitudes[mcounter], longitudes[mcounter]),
+              icon: mapMarker,
+              infoWindow:
+                  InfoWindow(title: titles[0], snippet: snippets[mcounter]),
+              onTap: () {
+                Scaffold.of(scaffoldKey.currentContext).showBottomSheet(
+                    (context) {
+                  return GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    // 키보드 올라왔을 때 화면터치로 내리기
+                    onTap: () {
+                      FocusScope.of(context).unfocus(); // 키보드 올라왔을 때 화면터치로 내리기
+                    },
+                    child: Container(
+                      padding: EdgeInsets.only(right: 80, top: 30),
+                      child: getBottomSheet(
+                        "${latitudes[mcounter]} , ${longitudes[mcounter]}",
+                        "${kickboards[mcounter]}",
+                        "${kickboardcodes[mcounter]}",
+                        "${safetyphones[mcounter]}",
                       ),
-                    );
-                  }, backgroundColor: Colors.transparent);
-                }),
-          );
-        }
-      } else {
-        print("krent : ${krent}");
-        for (int mcounter = 0; mcounter < markerIds.length; mcounter++) {
-          markers.add(
-            Marker(
-                markerId: markerIds[mcounter],
-                position: LatLng(lats[mcounter], lngs[mcounter]),
-                icon: mapMarker,
-                infoWindow:
-                    InfoWindow(title: titles[0], snippet: snippets[mcounter]),
-                onTap: () {
-                  Scaffold.of(scaffoldKey.currentContext).showBottomSheet(
-                      (context) {
-                    return GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      // 키보드 올라왔을 때 화면터치로 내리기
-                      onTap: () {
-                        FocusScope.of(context)
-                            .unfocus(); // 키보드 올라왔을 때 화면터치로 내리기
-                      },
-                      child: Container(
-                        padding: EdgeInsets.only(right: 80, top: 30),
-                        child: getBottomSheet(
-                          "${lats[mcounter]} , ${lngs[mcounter]}",
-                          "${kickboards[mcounter]}",
-                          "${kickboardcodes[mcounter]}",
-                          "${safetyphones[mcounter]}",
-                        ),
-                        height: 250,
-                      ),
-                    );
-                  }, backgroundColor: Colors.transparent);
-                }),
-          );
-        }
+                      height: 250,
+                    ),
+                  );
+                }, backgroundColor: Colors.transparent);
+              }),
+        );
       }
 
       location.onLocationChanged.listen((LocationData currentLocation) {
@@ -591,6 +571,106 @@ class GoogleMapsState extends State<GoogleMaps> {
 
   void sendLoginMessage(String id, pw) {
     stopSocket.write(PacketCreator.userLogin(id, pw));
+  }
+
+  Future<Null> _onRefresh() async {
+    print('refreshing...');
+    addMarker();
+    removeMarker();
+  }
+
+  void addMarker() {
+    setState(() {
+      if (krent == 3) {
+        print("krent of server : ${krent}");
+        print("before : ${markersIds}");
+        int qrdata = kickboardcodes.indexOf(Qrdatas);
+        markers.add(
+          Marker(
+              markerId: MarkerId("${qrdata}"),
+              position: LatLng(RealLats, RealLngs),
+              icon: mapMarker,
+              infoWindow:
+                  InfoWindow(title: titles[0], snippet: snippets[qrdata]),
+              onTap: () {
+                Scaffold.of(scaffoldKey.currentContext).showBottomSheet(
+                    (context) {
+                  return GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    // 키보드 올라왔을 때 화면터치로 내리기
+                    onTap: () {
+                      FocusScope.of(context).unfocus(); // 키보드 올라왔을 때 화면터치로 내리기
+                    },
+                    child: Container(
+                      padding: EdgeInsets.only(right: 80, top: 30),
+                      child: getBottomSheet(
+                        "${RealLats} , ${RealLngs}",
+                        "${kickboards[qrdata]}",
+                        "${Qrdatas}",
+                        "${safetyphones[qrdata]}",
+                      ),
+                      height: 250,
+                    ),
+                  );
+                }, backgroundColor: Colors.transparent);
+              }),
+        );
+        krent = 0;
+        markersIds.add(MarkerId("${qrdata}"));
+        latitudes.add(RealLats);
+        longitudes.add(RealLngs);
+        print(latitudes);
+        print(longitudes);
+        print("after : ${markersIds}");
+      }
+    });
+  }
+
+  void removeMarker() {
+    setState(() {
+      if (krent == 2) {
+        print("krent to server : ${krent}");
+        print("before : ${markersIds}");
+        int qrdata = kickboardcodes.indexOf(Qrdatas);
+        markers.remove(
+          Marker(
+              markerId: markersIds[qrdata],
+              position: LatLng(latitudes[qrdata], longitudes[qrdata]),
+              icon: mapMarker,
+              infoWindow:
+                  InfoWindow(title: titles[0], snippet: snippets[qrdata]),
+              onTap: () {
+                Scaffold.of(scaffoldKey.currentContext).showBottomSheet(
+                    (context) {
+                  return GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    // 키보드 올라왔을 때 화면터치로 내리기
+                    onTap: () {
+                      FocusScope.of(context).unfocus(); // 키보드 올라왔을 때 화면터치로 내리기
+                    },
+                    child: Container(
+                      padding: EdgeInsets.only(right: 80, top: 30),
+                      child: getBottomSheet(
+                        "${latitudes[qrdata]} , ${longitudes[qrdata]}",
+                        "${kickboards[qrdata]}",
+                        "${kickboardcodes[qrdata]}",
+                        "${safetyphones[qrdata]}",
+                      ),
+                      height: 250,
+                    ),
+                  );
+                }, backgroundColor: Colors.transparent);
+              }),
+        );
+        krent = 3;
+        markersIds.remove(MarkerId("${qrdata}"));
+        latitudes.remove(latitudes[qrdata]);
+        longitudes.remove(longitudes[qrdata]);
+        print(latitudes);
+        print(longitudes);
+        print("after : ${markersIds}");
+      }
+    });
   }
 }
 

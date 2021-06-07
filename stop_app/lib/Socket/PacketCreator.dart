@@ -1,11 +1,21 @@
 import 'package:stop_app/Socket/Protocol.dart';
 
 class PacketCreator {
+  static final int KICKBOARD_DATA = 100;
   static final int USER_LOGIN = 101;
   static final int USER_MEMBER = 102;
   static final int KICKBOARD_REQ = 103;
   static final int KICKBOARD_RET = 104;
   static final int LOADING_DIALOG = 300;
+
+  static String kickboardData(String lats, String lngs, String vers) {
+    Map data = new Map();
+    data["part"] = KICKBOARD_DATA;
+    data["lats"] = lats;
+    data["lngs"] = lngs;
+    data["vers"] = vers;
+    return Protocol.Encoder(data);
+  }
 
   static String userLogin(String id, String pw) {
     Map data = new Map();
