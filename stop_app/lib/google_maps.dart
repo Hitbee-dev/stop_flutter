@@ -51,8 +51,8 @@ class GoogleMapsState extends State<GoogleMaps> {
   static Socket stopSocket;
   Uint8List bytes = Uint8List(0);
   String localIP = "";
-  String serverIP = "182.229.179.75";
-  int port = 50003;
+  String serverIP = "203.247.41.152";
+  int port = 50002;
   int serverCheck = 0;
   List<MessageItem> items = [];
 
@@ -217,7 +217,7 @@ class GoogleMapsState extends State<GoogleMaps> {
 
   void normalProgress(context) async {
     ProgressDialog pd = ProgressDialog(context: context);
-    int imageSize = 4000000;
+    int imageSize = 7000000;
 
     pd.show(
       max: imageSize,
