@@ -14,7 +14,7 @@ https://user-images.githubusercontent.com/83276163/141934949-6a04a1e6-f268-473d-
  - https://github.com/Hitbee-dev/stop_arduino
 
 ## 경일대학교 LINC+ 주관 퍼스널 모빌리티 시스템 전국대회 최우수상
-![경일대 최우수상](https://user-images.githubusercontent.com/83276163/143435336-6402425c-349d-4e33-b3a8-5989a5a124f1.png)
+![이미지 14](https://user-images.githubusercontent.com/83276163/143438613-1a949128-a8b6-4da9-8558-f3055fae46f5.png)
 
 ### 수상 관련 기사
 - https://www.youtube.com/watch?v=pxeyby6f9Pw
