@@ -10,7 +10,6 @@ https://user-images.githubusercontent.com/83276163/141934949-6a04a1e6-f268-473d-
  ![전국대회2등](https://user-images.githubusercontent.com/83276163/142604759-2da52a43-215e-40a3-859a-8a1661dd581f.jpg)
 
 ## 수상 관련 기사
--------------------
 - http://emekorea.com/contents/05_pr/board.html?board_id=board_gallery&no=225&mode=view
 - https://www.youtube.com/watch?v=HDRlZEvdmeg
 - http://news.imaeil.com/page/view/2021111914530035621
