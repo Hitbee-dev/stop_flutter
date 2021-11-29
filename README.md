@@ -15,6 +15,7 @@ https://user-images.githubusercontent.com/83276163/141934949-6a04a1e6-f268-473d-
 
 ## 경일대학교 LINC+ 주관 퍼스널 모빌리티 시스템 전국대회 최우수상
 ![이미지 14](https://user-images.githubusercontent.com/83276163/143438613-1a949128-a8b6-4da9-8558-f3055fae46f5.png)
+![image](https://user-images.githubusercontent.com/83276163/143821428-19054f2c-1ae3-4e43-b6e8-28d2323d80f7.png)
 
 ### 수상 관련 기사
 - https://www.youtube.com/watch?v=pxeyby6f9Pw
